@@ -14,11 +14,9 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * The path to your application's "home" route.
      *
-     * Typically, users are redirected here after authentication.
-     *
      * @var string
      */
-    public const HOME = '/home';
+    public const HOME = '/';
     public const ADMIN_DASHBOARD = '/admin';
 
     /**
@@ -37,10 +35,15 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
-    protected function redirectTo($request)
+    /**
+     * Redirect user after login based on their role.
+     */
+    public function redirectTo(): string
     {
-        if (Auth::check()) {
-            return Auth::user()->isAdmin() ? self::ADMIN_DASHBOARD : self::HOME;
+        if (!Auth::check()) {
+            return '/login';
         }
+
+        return Auth::user()->isAdmin() ? self::ADMIN_DASHBOARD : self::HOME;
     }
 }
