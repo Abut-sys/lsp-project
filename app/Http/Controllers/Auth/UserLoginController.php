@@ -11,7 +11,7 @@ class UserLoginController extends Controller
     // Tampilkan form login untuk user
     public function showLoginForm()
     {
-        return view('filament.auth.user-login');
+        return view('auth.user-login');
     }
 
     // Proses login untuk user
