@@ -8,24 +8,28 @@ use Illuminate\Support\Facades\Auth;
 
 class UserLoginController extends Controller
 {
-    // Tampilkan form login untuk user
-    public function showLoginForm()
+    // Menampilkan halaman login dengan email
+    public function showEmailLoginForm()
     {
-        return view('auth.user-login');
+        return view('auth.user-login-email');
     }
 
-    // Proses login untuk user
-    public function login(Request $request)
+    // Menampilkan halaman login dengan nomor telepon
+    public function showPhoneLoginForm()
+    {
+        return view('auth.user-login-phone');
+    }
+
+    // Proses login menggunakan email
+    public function loginWithEmail(Request $request)
     {
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        // Pastikan menggunakan guard yang tepat (misal 'web' untuk user)
-        if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            // Redirect ke halaman utama atau dashboard user
             return redirect()->intended('/');
         }
 
@@ -34,12 +38,30 @@ class UserLoginController extends Controller
         ])->withInput();
     }
 
-    // Proses logout untuk user
+    // Proses login menggunakan nomor telepon
+    public function loginWithPhone(Request $request)
+    {
+        $credentials = $request->validate([
+            'phone_number' => ['required', 'numeric'],
+            'password'     => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('/');
+        }
+
+        return back()->withErrors([
+            'phone_number' => 'Nomor telepon atau password salah.',
+        ])->withInput();
+    }
+
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/');
     }
 }
+

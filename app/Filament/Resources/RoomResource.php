@@ -2,23 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\RoomResource\Pages;
-use App\Models\Room;
-use App\Models\RoomType;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
+use App\Models\Room;
+use Filament\Tables;
+use App\Models\RoomType;
+use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\BooleanColumn;
+use App\Filament\Resources\RoomResource\Pages;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Textarea;
 
 class RoomResource extends Resource
 {
     protected static ?string $model = Room::class;
     protected static ?string $navigationGroup = 'Hotel Management';
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -31,7 +34,7 @@ class RoomResource extends Resource
                 TextInput::make('room_number')
                     ->label('Nomor Kamar')
                     ->required()
-                    ->unique(),
+                    ->unique(ignoreRecord: true),
                 TextInput::make('capacity')
                     ->label('Kapasitas')
                     ->numeric()
@@ -39,7 +42,13 @@ class RoomResource extends Resource
                 TextInput::make('price')
                     ->label('Harga')
                     ->numeric()
-                    ->prefix('Rp'),
+                    ->rule('integer')
+                    ->prefix('Rp')
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state((int) $state)),
+                MarkdownEditor::make('description')
+                    ->required()
+                    ->maxLength(65535)
+                    ->columnSpanFull(),
                 Toggle::make('is_available')
                     ->label('Tersedia')
                     ->default(true),
@@ -57,8 +66,21 @@ class RoomResource extends Resource
                 TextColumn::make('room_number')->label('Nomor Kamar')->sortable(),
                 TextColumn::make('capacity')->label('Kapasitas')->sortable(),
                 TextColumn::make('price')->label('Harga')->money('IDR'),
-                BooleanColumn::make('is_available')->label('Tersedia'),
-                BooleanColumn::make('is_booked')->label('Dipesan'),
+                BadgeColumn::make('is_available')
+                    ->label('Status')
+                    ->colors([
+                        'success' => fn ($state) => $state,
+                        'danger' => fn ($state) => !$state,
+                    ])
+                    ->formatStateUsing(fn ($state) => $state ? 'Tersedia' : 'Tidak Tersedia'),
+                    BadgeColumn::make('is_booked')
+                    ->label('Dipesan')
+                    ->colors([
+                        'warning' => fn ($state) => $state,
+                        'success' => fn ($state) => !$state,
+                    ])
+                    ->formatStateUsing(fn ($state) => $state ? 'Sudah Dipesan' : 'Belum Dipesan'),
+
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

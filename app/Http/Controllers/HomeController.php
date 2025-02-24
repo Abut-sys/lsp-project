@@ -11,6 +11,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('welcome'); // Mengarahkan ke tampilan home.blade.php
+        return view('welcome'); 
     }
 }

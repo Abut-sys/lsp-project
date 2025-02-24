@@ -33,6 +33,10 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->unique(User::class, 'email', ignoreRecord: true),
+                Forms\Components\TextInput::make('phone_number')
+                    ->label('Nomor Telepon')
+                    ->tel()
+                    ->maxLength(15),
                 Forms\Components\Select::make('role')
                     ->label('Role')
                     ->options([
@@ -56,8 +60,8 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nama')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('email')->label('Email')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('phone_number')->label('Nomor Telepon')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('role')->label('Role')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')->label('email_verified_at')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('created_at')->label('Dibuat Pada')->dateTime('d M Y H:i'),
             ])
             ->filters([

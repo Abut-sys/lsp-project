@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\UserLoginController;
+use App\Http\Controllers\Auth\UserRegisterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ use App\Http\Controllers\Auth\UserLoginController;
 */
 
 Route::get('/', function () {
-    return view('filament.welcome');
+    return view('welcome');
 })->name('welcome');
 
 Route::middleware(['auth'])->group(function () {
@@ -32,11 +33,16 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+Route::get('/register', [UserRegisterController::class, 'showRegisterForm'])->name('user.register.email');
+Route::post('/register', [UserRegisterController::class, 'registerWithEmail'])->name('user.register.email.submit');
 
-Route::get('/login', [UserLoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [UserLoginController::class, 'login'])->name('login.submit');
+Route::get('/register/phone', [UserRegisterController::class, 'showRegisterPhoneForm'])->name('user.register.phone');
+Route::post('/register/phone', [UserRegisterController::class, 'registerWithPhone'])->name('user.register.phone.submit');
 
-// Route logout
-Route::post('/logout', [UserLoginController::class, 'logout'])->name('logout');
+Route::get('/login', [UserLoginController::class, 'showEmailLoginForm'])->name('user.login.email');
+Route::get('/login/phone', [UserLoginController::class, 'showPhoneLoginForm'])->name('user.login.phone');
 
-// Route::get('/login', UserLogin::class)->name('login');
+Route::post('/login', [UserLoginController::class, 'loginWithEmail'])->name('user.login.email.submit');
+Route::post('/login/phone', [UserLoginController::class, 'loginWithPhone'])->name('user.login.phone.submit');
+
+Route::post('/logout', [UserLoginController::class, 'logout'])->name('user.logout');

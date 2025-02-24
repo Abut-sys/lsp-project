@@ -24,7 +24,7 @@ class BookingResource extends Resource
 {
     protected static ?string $model = Booking::class;
     protected static ?string $navigationGroup = 'Hotel Management';
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static ?string $navigationIcon = 'heroicon-o-bookmark-square';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -69,18 +69,21 @@ class BookingResource extends Resource
                 }),
             ])
             ->bulkActions([
-                BulkAction::make('download_pdf')
-                    ->label('Download PDF')
-                    ->icon('heroicon-o-document-text')
-                    ->action(function (Collection $records) {
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    BulkAction::make('download_pdf')
+                        ->label('Download PDF')
+                        ->icon('heroicon-o-document-text')
+                        ->action(function (Collection $records) {
                         $pdf = app('dompdf.wrapper');
-                        $pdf->loadView('pdf.bookings', [
-                            'records' => $records,
-                        ]);
+                            $pdf->loadView('pdf.bookings', [
+                                'records' => $records,
+                            ]);
 
-                        return response()->streamDownload(fn() => print $pdf->output(), 'bookings.pdf');
-                    })
-                    ->requiresConfirmation(),
+                            return response()->streamDownload(fn() => print $pdf->output(), 'bookings.pdf');
+                        })
+                        ->requiresConfirmation(),
+                    ]),
             ]);
     }
 

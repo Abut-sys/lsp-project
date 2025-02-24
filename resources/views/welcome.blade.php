@@ -9,17 +9,17 @@
 <body class="bg-gray-100">
     <!-- Navbar -->
     <nav class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
-        <a href="#" class="text-2xl font-bold flex items-center">
+        <a href="{{ url('/') }}" class="text-2xl font-bold flex items-center">
             <span class="text-blue-600">Book</span><span class="text-orange-500">N</span><span class="text-blue-600">Stay</span>
         </a>
         <div class="flex items-center gap-6">
-            <a href="#" class="text-gray-700 hover:text-gray-900">Login</a>
-            <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sign Up</a>
+            <a href="{{ route('user.login.email') }}" class="text-gray-700 hover:text-gray-900">Login</a>
+            <a href="{{ route('user.register.email') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sign Up</a>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <header class="relative bg-cover bg-center h-96 flex items-center justify-center text-center" style="background-image: url('https://source.unsplash.com/1600x900/?luxury-hotel');">
+    <header class="relative bg-cover bg-center h-96 flex items-center justify-center text-center" style="background-image: url('{{ asset('assets/images/allhotel.jpg') }}');">
         <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-4 w-full">
             <h1 class="text-4xl font-bold text-white">Temukan Hotel Terbaik untuk Perjalananmu</h1>
             <div class="bg-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-3xl flex flex-col gap-2">
@@ -88,11 +88,11 @@
         // Hotel List
         const hotelList = document.querySelector(".grid");
         const hotelData = [
-            { name: "Grand Hotel", location: "Jakarta, Indonesia", image: "https://source.unsplash.com/400x300/?hotel" },
-            { name: "Resort Paradise", location: "Bali, Indonesia", image: "https://source.unsplash.com/400x300/?resort" },
-            { name: "Boutique Stay", location: "Bandung, Indonesia", image: "https://source.unsplash.com/400x300/?boutique-hotel" },
-            { name: "Luxury Villa", location: "Yogyakarta, Indonesia", image: "https://source.unsplash.com/400x300/?villa" },
-            { name: "City Lights Hotel", location: "Surabaya, Indonesia", image: "https://source.unsplash.com/400x300/?city-hotel" }
+            { name: "Grand Hotel", location: "Jakarta, Indonesia", image: "{{ asset('assets/images/kamar-popok.jpg') }}" },
+            { name: "Resort Paradise", location: "Bali, Indonesia", image: "{{ asset('assets/images/kamar-kontol.jpg') }}" },
+            { name: "Boutique Stay", location: "Bandung, Indonesia", image: "{{ asset('assets/images/kamar-hotel.webp') }}" },
+            { name: "Luxury Villa", location: "Yogyakarta, Indonesia", image: "{{ asset('assets/images/kamar-ngewe.jpg') }}" },
+            { name: "City Lights Hotel", location: "Surabaya, Indonesia", image: "{{ asset('assets/images/hotel-momok.jpg') }}" }
         ];
 
         hotelData.forEach(hotel => {

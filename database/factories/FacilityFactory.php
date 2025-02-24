@@ -23,7 +23,6 @@ class FacilityFactory extends Factory
     {
         return [
             'name' => $this->faker->unique()->word,
-            'description' => $this->faker->paragraph,
             'images' => [$this->faker->imageUrl(640, 480, 'technics', true, 'Faker')],
         ];
     }
