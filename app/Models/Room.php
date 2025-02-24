@@ -34,4 +34,9 @@ class Room extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function getIsBookedAttribute()
+    {
+        return $this->bookings()->where('status', 'confirmed')->exists();
+    }
 }

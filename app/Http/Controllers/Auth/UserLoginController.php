@@ -30,7 +30,7 @@ class UserLoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            return redirect()->route('welcome');
         }
 
         return back()->withErrors([
@@ -48,7 +48,7 @@ class UserLoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            return redirect()->route('welcome');
         }
 
         return back()->withErrors([

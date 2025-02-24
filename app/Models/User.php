@@ -22,6 +22,10 @@ class User extends Authenticatable
      */
     protected $fillable = ['name', 'email', 'password', 'phone_number', 'role'];
 
+    protected $attributes = [
+        'role' => 'user',
+    ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -44,9 +48,9 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    public function canAccessPanel(Panel $panel): bool
+    public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return $this->isAdmin();
+        return $this->isAdmin(); 
     }
 
     public function rooms()

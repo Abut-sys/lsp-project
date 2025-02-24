@@ -73,13 +73,14 @@ class RoomResource extends Resource
                         'danger' => fn ($state) => !$state,
                     ])
                     ->formatStateUsing(fn ($state) => $state ? 'Tersedia' : 'Tidak Tersedia'),
-                    BadgeColumn::make('is_booked')
+                BadgeColumn::make('is_booked')
                     ->label('Dipesan')
                     ->colors([
                         'warning' => fn ($state) => $state,
                         'success' => fn ($state) => !$state,
                     ])
-                    ->formatStateUsing(fn ($state) => $state ? 'Sudah Dipesan' : 'Belum Dipesan'),
+                    ->formatStateUsing(fn ($record) => $record->is_booked ? 'Sudah Dipesan' : 'Belum Dipesan'),
+
 
             ])
             ->actions([

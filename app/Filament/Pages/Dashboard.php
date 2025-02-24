@@ -6,6 +6,7 @@ use Filament\Pages\Page;
 use App\Models\Room;
 use App\Models\Booking;
 use App\Models\User;
+use Filament\Tables\Columns\Concerns\HasWidth;
 
 class Dashboard extends Page
 {

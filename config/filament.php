@@ -82,9 +82,12 @@ return [
         ],
     ],
 
-    'panel' => [
-        \Filament\Http\Middleware\Authenticate::class,
-        // \Filament\Http\Middleware\Authorize::class, // Pastikan ini ada
-        \Filament\Http\Middleware\DisableBladeIconComponents::class,
+    'panels' => [
+        'admin' => [
+            'id' => 'admin',
+            'path' => 'admin',
+            'middleware' => ['web', 'auth', 'admin'], // Tambahkan 'admin' middleware jika perlu
+            'auth_guard' => 'web',
+        ],
     ],
 ];

@@ -1,29 +1,60 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookNStay - BookNStay Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
+
 <body class="bg-gray-100">
     <!-- Navbar -->
     <nav class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
         <a href="{{ url('/') }}" class="text-2xl font-bold flex items-center">
-            <span class="text-blue-600">Book</span><span class="text-orange-500">N</span><span class="text-blue-600">Stay</span>
+            <span class="text-blue-600">Book</span><span class="text-orange-500">N</span><span
+                class="text-blue-600">Stay</span>
         </a>
+
         <div class="flex items-center gap-6">
-            <a href="{{ route('user.login.email') }}" class="text-gray-700 hover:text-gray-900">Login</a>
-            <a href="{{ route('user.register.email') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sign Up</a>
+            @guest
+                <a href="{{ route('user.login.email') }}" class="text-gray-700 hover:text-gray-900">Login</a>
+                <a href="{{ route('user.register.email') }}"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sign Up</a>
+            @endguest
+
+            @auth
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" @click.away="open = false"
+                    class="text-gray-700 hover:text-gray-900 focus:outline-none flex items-center space-x-2">
+                    <span>Profile</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 shadow-lg rounded-lg">
+                    <a href="{{ route('user.profile') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                    <form action="{{ route('user.logout') }}" method="POST" class="block w-full">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Logout</button>
+                    </form>
+                </div>
+            </div>
+            @endauth
         </div>
     </nav>
 
+
     <!-- Hero Section -->
-    <header class="relative bg-cover bg-center h-96 flex items-center justify-center text-center" style="background-image: url('{{ asset('assets/images/allhotel.jpg') }}');">
+    <header class="relative bg-cover bg-center h-96 flex items-center justify-center text-center"
+        style="background-image: url('{{ asset('assets/images/allhotel.jpg') }}');">
         <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-4 w-full">
             <h1 class="text-4xl font-bold text-white">Temukan Hotel Terbaik untuk Perjalananmu</h1>
             <div class="bg-white p-4 rounded-lg shadow-lg mt-4 w-full max-w-3xl flex flex-col gap-2">
-                <input type="text" placeholder="Kota, hotel, atau destinasi" class="border rounded-lg px-3 py-2 w-full">
+                <input type="text" placeholder="Kota, hotel, atau destinasi"
+                    class="border rounded-lg px-3 py-2 w-full">
                 <div class="flex gap-2">
                     <div class="border rounded-lg px-3 py-2 flex items-center gap-2 w-full">
                         <input type="date" class="w-1/2">
@@ -31,12 +62,16 @@
                         <input type="date" class="w-1/2">
                     </div>
                     <div class="relative w-1/3">
-                        <button id="dropdownButton" class="border rounded-lg px-3 py-2 w-full text-left">Kamar & Tamu</button>
-                        <div id="dropdownMenu" class="absolute left-0 mt-2 w-full bg-white shadow-lg rounded-lg p-3 hidden">
+                        <button id="dropdownButton" class="border rounded-lg px-3 py-2 w-full text-left">Kamar &
+                            Tamu</button>
+                        <div id="dropdownMenu"
+                            class="absolute left-0 mt-2 w-full bg-white shadow-lg rounded-lg p-3 hidden">
                             <label class="block mb-1">Jumlah Kamar:</label>
-                            <input type="number" min="1" value="1" class="border rounded-lg px-3 py-2 w-full">
+                            <input type="number" min="1" value="1"
+                                class="border rounded-lg px-3 py-2 w-full">
                             <label class="block mt-2 mb-1">Jumlah Orang:</label>
-                            <input type="number" min="1" value="1" class="border rounded-lg px-3 py-2 w-full">
+                            <input type="number" min="1" value="1"
+                                class="border rounded-lg px-3 py-2 w-full">
                         </div>
                     </div>
                 </div>
@@ -87,12 +122,31 @@
 
         // Hotel List
         const hotelList = document.querySelector(".grid");
-        const hotelData = [
-            { name: "Grand Hotel", location: "Jakarta, Indonesia", image: "{{ asset('assets/images/kamar-popok.jpg') }}" },
-            { name: "Resort Paradise", location: "Bali, Indonesia", image: "{{ asset('assets/images/kamar-kontol.jpg') }}" },
-            { name: "Boutique Stay", location: "Bandung, Indonesia", image: "{{ asset('assets/images/kamar-hotel.webp') }}" },
-            { name: "Luxury Villa", location: "Yogyakarta, Indonesia", image: "{{ asset('assets/images/kamar-ngewe.jpg') }}" },
-            { name: "City Lights Hotel", location: "Surabaya, Indonesia", image: "{{ asset('assets/images/hotel-momok.jpg') }}" }
+        const hotelData = [{
+                name: "Grand Hotel",
+                location: "Jakarta, Indonesia",
+                image: "{{ asset('assets/images/kamar-popok.jpg') }}"
+            },
+            {
+                name: "Resort Paradise",
+                location: "Bali, Indonesia",
+                image: "{{ asset('assets/images/kamar-kontol.jpg') }}"
+            },
+            {
+                name: "Boutique Stay",
+                location: "Bandung, Indonesia",
+                image: "{{ asset('assets/images/kamar-hotel.webp') }}"
+            },
+            {
+                name: "Luxury Villa",
+                location: "Yogyakarta, Indonesia",
+                image: "{{ asset('assets/images/kamar-ngewe.jpg') }}"
+            },
+            {
+                name: "City Lights Hotel",
+                location: "Surabaya, Indonesia",
+                image: "{{ asset('assets/images/hotel-momok.jpg') }}"
+            }
         ];
 
         hotelData.forEach(hotel => {
@@ -104,4 +158,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class AdminOnly
+class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
