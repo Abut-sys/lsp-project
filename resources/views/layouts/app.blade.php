@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hotel Reservation</title>
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
     <header class="bg-white shadow">
@@ -19,7 +20,7 @@
                         <button type="submit" class="text-red-500">Logout</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="text-blue-500">Login</a>
+                    <a href="{{ route('user.login.email') }}" class="text-blue-500">Login</a>
                 @endauth
             </nav>
         </div>
