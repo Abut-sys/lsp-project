@@ -18,6 +18,7 @@ class RoomFactory extends Factory
         return [
             'room_type_id' => RoomType::inRandomOrder()->first()->id ?? RoomType::factory(),
             'room_number' => $this->faker->unique()->numberBetween(100, 999),
+            'images' => [$this->faker->imageUrl(640, 480, 'technics', true, 'Faker')],
             'capacity' => $this->faker->randomElement([1, 2, 3, 4]),
             'price' => $this->faker->randomFloat(850000, 1000000, 1340000),
             'description' => $this->faker->paragraph,

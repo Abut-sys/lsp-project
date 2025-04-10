@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('room_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->foreignId('facility_id')->nullable()->constrained()->onDelete('set null');
+            $table->json('facilities')->nullable();
             $table->timestamps();
         });
     }

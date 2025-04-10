@@ -50,11 +50,21 @@ class User extends Authenticatable
 
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return $this->isAdmin(); 
+        return $this->isAdmin();
     }
 
     public function rooms()
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

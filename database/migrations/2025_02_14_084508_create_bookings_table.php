@@ -17,8 +17,9 @@ return new class extends Migration
             $table->foreignId('room_id')->constrained()->onDelete('cascade');
             $table->date('check_in_date');
             $table->date('check_out_date');
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->enum('payment_status', ['pending', 'confirmed', 'cancel', 'expire', 'failure'])->default('pending');
             $table->decimal('total_price', 10, 0);
+            $table->string('midtrans_token')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -32,3 +33,4 @@ return new class extends Migration
         Schema::dropIfExists('bookings');
     }
 };
+

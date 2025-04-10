@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('room_type_id')->constrained()->onDelete('cascade');
             $table->string('room_number')->unique();
             $table->integer('capacity')->default(2);
+            $table->json('images')->nullable();
             $table->decimal('price', 10, 0);
             $table->text('description');
             $table->boolean('is_available')->default(true);

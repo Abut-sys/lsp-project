@@ -33,11 +33,9 @@ class DatabaseSeeder extends Seeder
 
         RoomType::factory(7)->create();
 
-        Facility::factory(2)->create();
+        Room::factory(1)->create();
 
-        Room::factory(15)->create();
-
-        Booking::factory(30)->create();
+        // Booking::factory(1)->create();
 
         // User biasa
         User::create([

@@ -39,6 +39,12 @@ class RoomResource extends Resource
                     ->label('Kapasitas')
                     ->numeric()
                     ->default(2),
+                Forms\Components\FileUpload::make('images')
+                    ->label('Images')
+                    ->directory('rooms')
+                    ->image()
+                    ->multiple()
+                    ->helperText('Upload multiple images for this facility.'),
                 TextInput::make('price')
                     ->label('Harga')
                     ->numeric()
@@ -65,6 +71,9 @@ class RoomResource extends Resource
                 TextColumn::make('roomType.name')->label('Tipe Kamar')->sortable(),
                 TextColumn::make('room_number')->label('Nomor Kamar')->sortable(),
                 TextColumn::make('capacity')->label('Kapasitas')->sortable(),
+                Tables\Columns\ViewColumn::make('images')
+                    ->label('Images')
+                    ->view('filament.resources.facility-resource.columns.images'),
                 TextColumn::make('price')->label('Harga')->money('IDR'),
                 BadgeColumn::make('is_available')
                     ->label('Status')

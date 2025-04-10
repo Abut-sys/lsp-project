@@ -9,10 +9,19 @@ class RoomType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price'];
+    protected $fillable = ['name', 'facilities'];
 
-    public function facility()
+    protected $casts = [
+        'facilities' => 'array', // Konversi JSON ke array otomatis
+    ];
+
+    public function rooms()
     {
-        return $this->belongsTo(Facility::class);
+        return $this->hasMany(Room::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasManyThrough(Booking::class, Room::class);
     }
 }

@@ -66,6 +66,17 @@
 </head>
 <body>
     <h1>Data Booking</h1>
+
+    @php
+    // Definisikan array terjemahan status
+    $statusTranslations = [
+        'pending' => 'Menunggu Pembayaran',
+        'confirmed' => 'Dibayar',
+        'failure' => 'Gagal',
+        'cancel' => 'Dibatalkan'
+    ];
+    @endphp
+
     <table>
         <thead>
             <tr>
@@ -85,11 +96,11 @@
                     <td>{{ $booking->check_out_date }}</td>
                     <td>
                         <span class="status
-                            @if($booking->status == 'confirmed') status-confirmed
-                            @elseif($booking->status == 'cancelled') status-cancelled
+                            @if($booking->payment_status == 'confirmed') status-confirmed
+                            @elseif($booking->payment_status == 'cancelled') status-cancelled
                             @else status-pending
                             @endif">
-                            {{ $booking->status }}
+                            {{ $statusTranslations[$booking->payment_status] ?? $booking->payment_status }}
                         </span>
                     </td>
                 </tr>

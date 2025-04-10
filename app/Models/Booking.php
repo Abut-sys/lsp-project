@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,9 +13,13 @@ class Booking extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'room_id', 'check_in_date', 'check_out_date', 'status', 'total_price'];
+    protected $fillable = ['user_id', 'room_id', 'check_in_date', 'check_out_date', 'payment_status', 'total_price', 'midtrans_token'];
 
-    protected $dates = ['deleted_at'];
+    protected $casts = [
+        'check_in_date' => 'date',
+        'check_out_date' => 'date',
+        'total_price' => 'decimal:0',
+    ];
 
     /**
      * Relasi ke model User (satu reservasi hanya untuk satu user)
@@ -32,11 +38,11 @@ class Booking extends Model
     }
 
     /**
-     * Scope untuk mendapatkan reservasi yang masih aktif
+     * Scope untuk mendapatkan reservasi yang masih aktif (dibayar/confirmed)
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'confirmed');
+        return $query->where('payment_status', 'confirmed');
     }
 
     protected static function boot()
@@ -60,7 +66,7 @@ class Booking extends Model
         static::saved(function ($booking) {
             $room = $booking->room;
             if ($room) {
-                $room->is_booked = $room->bookings()->where('status', 'confirmed')->exists();
+                $room->is_booked = $room->bookings()->where('payment_status', 'confirmed')->where('check_out_date', '>', now())->exists();
                 $room->saveQuietly();
             }
         });
@@ -68,7 +74,7 @@ class Booking extends Model
         static::deleted(function ($booking) {
             $room = $booking->room;
             if ($room) {
-                $room->is_booked = $room->bookings()->where('status', 'confirmed')->exists();
+                $room->is_booked = $room->bookings()->where('payment_status', 'confirmed')->exists();
                 $room->saveQuietly();
             }
         });
@@ -80,13 +86,14 @@ class Booking extends Model
     public function isDoubleBooked(): bool
     {
         return self::where('room_id', $this->room_id)
-            ->where('status', 'confirmed')
+            ->where('payment_status', 'confirmed')
             ->where(function ($query) {
-                $query->whereBetween('check_in_date', [$this->check_in_date, $this->check_out_date])
-                    ->orWhereBetween('check_out_date', [$this->check_in_date, $this->check_out_date])
+                $query
+                    ->where(function ($q) {
+                        $q->whereBetween('check_in_date', [$this->check_in_date, $this->check_out_date])->orWhereBetween('check_out_date', [$this->check_in_date, $this->check_out_date]);
+                    })
                     ->orWhere(function ($q) {
-                        $q->where('check_in_date', '<=', $this->check_in_date)
-                            ->where('check_out_date', '>=', $this->check_out_date);
+                        $q->where('check_in_date', '<=', $this->check_in_date)->where('check_out_date', '>=', $this->check_out_date);
                     });
             })
             ->exists();
@@ -97,13 +104,35 @@ class Booking extends Model
      */
     public function calculateTotalPrice()
     {
-        $room = Room::find($this->room_id);
+        $room = $this->room;
         if ($room && $this->check_in_date && $this->check_out_date) {
-            $checkIn = $this->check_in_date instanceof \DateTime ? $this->check_in_date->getTimestamp() : strtotime($this->check_in_date);
-            $checkOut = $this->check_out_date instanceof \DateTime ? $this->check_out_date->getTimestamp() : strtotime($this->check_out_date);
-
-            $nights = max(1, ($checkOut - $checkIn) / 86400);
+            $checkIn = Carbon::parse($this->check_in_date);
+            $checkOut = Carbon::parse($this->check_out_date);
+            $nights = max(1, $checkIn->diffInDays($checkOut));
             $this->total_price = $room->price * $nights;
         }
+    }
+
+    public function getPaymentUrl()
+    {
+        $serverKey = config('services.midtrans.server_key');
+        $url = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+
+        $response = Http::withBasicAuth($serverKey, '')->post($url, [
+            'transaction_details' => [
+                'order_id' => $this->id,
+                'gross_amount' => $this->total_price,
+            ],
+            'customer_details' => [
+                'first_name' => $this->user->name,
+                'email' => $this->user->email,
+            ],
+            'callbacks' => [
+                'finish' => url('/api/midtrans/callback'),
+            ],
+        ]);
+
+        $result = $response->json();
+        return $result['redirect_url'] ?? null;
     }
 }

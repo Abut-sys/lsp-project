@@ -11,6 +11,10 @@ class UserLoginController extends Controller
     // Menampilkan halaman login dengan email
     public function showEmailLoginForm()
     {
+        if (auth()->check()) {
+            return redirect()->route('user.profile');
+        }
+
         return view('auth.user-login-email');
     }
 
@@ -30,7 +34,7 @@ class UserLoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('welcome');
+            return redirect('/');
         }
 
         return back()->withErrors([
@@ -48,7 +52,7 @@ class UserLoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('welcome');
+            return redirect('/');
         }
 
         return back()->withErrors([
