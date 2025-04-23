@@ -19,9 +19,6 @@
 </head>
 
 <body class="bg-gray-100">
-    {{-- <!-- Navbar -->
-    @include('components.__navbar') --}}
-
     <!-- Content Section -->
     <main>
         @yield('content')

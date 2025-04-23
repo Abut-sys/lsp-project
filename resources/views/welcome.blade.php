@@ -185,55 +185,46 @@
                         <div x-data="{
                             checkIn: '{{ request('check_in') }}',
                             checkOut: '{{ request('check_out') }}',
+                            picker: null,
+
                             init() {
-                                // Validasi format tanggal awal
-                                const initialDates = [];
                                 const dateFormat = 'Y-m-d';
+                                const self = this;
 
-                                // Cek dan konversi tanggal check_in
-                                if (this.checkIn && flatpickr.parseDate(this.checkIn, dateFormat)) {
-                                    initialDates.push(this.checkIn);
-                                }
-
-                                // Cek dan konversi tanggal check_out
-                                if (this.checkOut && flatpickr.parseDate(this.checkOut, dateFormat)) {
-                                    initialDates.push(this.checkOut);
-                                }
-
-                                // Inisialisasi flatpickr
-                                const picker = flatpickr(this.$refs.dates, {
+                                this.picker = flatpickr(this.$refs.dates, {
                                     mode: 'range',
                                     dateFormat: dateFormat,
-                                    defaultDate: initialDates.length === 2 ? initialDates : null,
-                                    onChange: (selectedDates, dateStr) => {
+                                    minDate: 'today',
+                                    defaultDate: this.checkIn && this.checkOut ? [this.checkIn, this.checkOut] : null,
+                                    onChange: function(selectedDates) {
                                         if (selectedDates.length === 2) {
-                                            // Update nilai langsung saat dipilih
-                                            this.checkIn = flatpickr.formatDate(selectedDates[0], dateFormat);
-                                            this.checkOut = flatpickr.formatDate(selectedDates[1], dateFormat);
-                                        }
-                                    },
-                                    onReady: (selectedDates, dateStr) => {
-                                        // Handle saat pertama kali load
-                                        if (selectedDates.length === 2) {
-                                            this.checkIn = flatpickr.formatDate(selectedDates[0], dateFormat);
-                                            this.checkOut = flatpickr.formatDate(selectedDates[1], dateFormat);
+                                            self.checkIn = flatpickr.formatDate(selectedDates[0], dateFormat);
+                                            self.checkOut = flatpickr.formatDate(selectedDates[1], dateFormat);
                                         }
                                     }
                                 });
 
-                                // Sync nilai Alpine.js dengan flatpickr
-                                this.$watch('checkIn', (value) => {
-                                    if (!picker.selectedDates[0] || value !== flatpickr.formatDate(picker.selectedDates[0], dateFormat)) {
-                                        picker.setDate([value, this.checkOut], true);
-                                    }
-                                });
-
-                                this.$watch('checkOut', (value) => {
-                                    if (!picker.selectedDates[1] || value !== flatpickr.formatDate(picker.selectedDates[1], dateFormat)) {
-                                        picker.setDate([this.checkIn, value], true);
+                                this.$watch('checkIn', value => {
+                                    if (value && this.checkOut && new Date(value) >= new Date(this.checkOut)) {
+                                        this.clearDates();
                                     }
                                 });
                             },
+
+                            clearDates() {
+                                this.checkIn = '';
+                                this.checkOut = '';
+                                this.picker.clear();
+                                this.updateURL();
+                            },
+
+                            updateURL() {
+                                const url = new URL(window.location.href);
+                                url.searchParams.delete('check_in');
+                                url.searchParams.delete('check_out');
+                                window.history.replaceState({}, '', url.toString());
+                            },
+
                             formattedDate(date) {
                                 return date ? new Date(date).toLocaleDateString('id-ID', {
                                     day: 'numeric',
@@ -245,8 +236,7 @@
                             <input type="hidden" name="check_in" x-model="checkIn">
                             <input type="hidden" name="check_out" x-model="checkOut">
 
-                            <div
-                                class="cursor-pointer bg-white rounded-xl border border-gray-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
+                            <div class="cursor-pointer bg-white rounded-xl border border-gray-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
                                 <div class="flex items-center h-16 px-4" x-ref="dates">
                                     <div class="flex-1 pr-4">
                                         <div class="text-sm font-semibold text-blue-600">CHECK-IN</div>
@@ -262,8 +252,15 @@
                                             x-text="checkOut ? formattedDate(checkOut) : 'Pilih tanggal'"></div>
                                     </div>
 
-                                    <div class="ml-4 text-blue-400">
-                                        <i class="fas fa-calendar-alt text-lg"></i>
+                                    <div class="ml-4 flex items-center gap-2">
+                                        <button x-show="checkIn || checkOut" @click="clearDates()"
+                                            class="text-red-400 hover:text-red-600 transition-colors p-1" type="button"
+                                            title="Hapus filter tanggal">
+                                            <i class="fas fa-times-circle text-lg"></i>
+                                        </button>
+                                        <div class="text-blue-400">
+                                            <i class="fas fa-calendar-alt text-lg"></i>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -312,8 +309,8 @@
                                         <button type="button" @click="updateValue('rooms', 'minus')"
                                             :disabled="!rooms || rooms <= 0"
                                             class="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center transition-all
-                                                       hover:bg-blue-100 hover:shadow-md
-                                                       disabled:opacity-50 disabled:hover:bg-white disabled:cursor-not-allowed">
+                                                   hover:bg-blue-100 hover:shadow-md
+                                                   disabled:opacity-50 disabled:hover:bg-white disabled:cursor-not-allowed">
                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -324,13 +321,13 @@
                                         <input type="number" name="rooms" x-model="rooms" min="0"
                                             placeholder="0"
                                             class="w-16 text-center text-lg font-semibold bg-transparent border-b-2 border-blue-100
-                                                       focus:border-blue-500 focus:outline-none focus:ring-0 transition-colors
-                                                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none
-                                                       [&::-webkit-inner-spin-button]:appearance-none">
+                                                   focus:border-blue-500 focus:outline-none focus:ring-0 transition-colors
+                                                   [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none
+                                                   [&::-webkit-inner-spin-button]:appearance-none">
 
                                         <button type="button" @click="updateValue('rooms', 'plus')"
                                             class="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center transition-all
-                                                       hover:bg-blue-100 hover:shadow-md">
+                                                   hover:bg-blue-100 hover:shadow-md">
                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -340,7 +337,7 @@
 
                                         <button type="button" @click="rooms = ''" x-show="rooms"
                                             class="w-9 h-9 rounded-full flex items-center justify-center text-red-500
-                                                       hover:bg-red-50 transition-colors"
+                                                   hover:bg-red-50 transition-colors"
                                             title="Clear">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -362,8 +359,8 @@
                                         <button type="button" @click="updateValue('guests', 'minus')"
                                             :disabled="!guests || guests <= 0"
                                             class="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center transition-all
-                                                       hover:bg-blue-100 hover:shadow-md
-                                                       disabled:opacity-50 disabled:hover:bg-white disabled:cursor-not-allowed">
+                                                   hover:bg-blue-100 hover:shadow-md
+                                                   disabled:opacity-50 disabled:hover:bg-white disabled:cursor-not-allowed">
                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -374,13 +371,13 @@
                                         <input type="number" name="guests" x-model="guests" min="0"
                                             placeholder="0"
                                             class="w-16 text-center text-lg font-semibold bg-transparent border-b-2 border-blue-100
-                                                       focus:border-blue-500 focus:outline-none focus:ring-0 transition-colors
-                                                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none
-                                                       [&::-webkit-inner-spin-button]:appearance-none">
+                                                   focus:border-blue-500 focus:outline-none focus:ring-0 transition-colors
+                                                   [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none
+                                                   [&::-webkit-inner-spin-button]:appearance-none">
 
                                         <button type="button" @click="updateValue('guests', 'plus')"
                                             class="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center transition-all
-                                                       hover:bg-blue-100 hover:shadow-md">
+                                                   hover:bg-blue-100 hover:shadow-md">
                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -390,7 +387,7 @@
 
                                         <button type="button" @click="guests = ''" x-show="guests"
                                             class="w-9 h-9 rounded-full flex items-center justify-center text-red-500
-                                                       hover:bg-red-50 transition-colors"
+                                                   hover:bg-red-50 transition-colors"
                                             title="Clear">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -424,9 +421,9 @@
                                     <div class="font-medium">
                                         <span
                                             x-text="
-                                            selected === '1' ? 'Tersedia' :
-                                            selected === '0' ? 'Tidak Tersedia' : 'Semua Status'
-                                        "></span>
+                                        selected === '1' ? 'Tersedia' :
+                                        selected === '0' ? 'Tidak Tersedia' : 'Semua Status'
+                                    "></span>
                                     </div>
                                 </div>
                             </button>
@@ -482,16 +479,12 @@
         <!-- Sorting Controls -->
         <div class="flex flex-wrap gap-4 mb-8 justify-center">
             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'price']) }}"
-                class="px-6 py-2 rounded-full transition-all"
-                :class="sortBy === 'price' ? 'bg-blue-600 text-white shadow-lg' :
-                    'bg-white text-gray-600 shadow-md hover:shadow-lg'">
+                class="px-6 py-2 rounded-full transition-all {{ $sortBy === 'price' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-gray-600 shadow-md hover:shadow-lg' }}">
                 💰 Harga Terendah
             </a>
-            <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'rating']) }}"
-                class="px-6 py-2 rounded-full transition-all"
-                :class="sortBy === 'rating' ? 'bg-blue-600 text-white shadow-lg' :
-                    'bg-white text-gray-600 shadow-md hover:shadow-lg'">
-                ⭐ Rating Tertinggi
+            <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'kamar_terbaik']) }}"
+                class="px-6 py-2 rounded-full transition-all {{ $sortBy === 'kamar_terbaik' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-gray-600 shadow-md hover:shadow-lg' }}">
+                🏆 Kamar Terbaik
             </a>
         </div>
 
@@ -565,12 +558,13 @@
                                 {{ $room->capacity }} Orang
                             </div>
                             <a href="{{ route('room.show', ['roomNumber' => $room->room_number]) }}"
-                                class="{{ $room->is_available ?
-                                    'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' :
-                                    'bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800' }}
+                                class="{{ $room->is_available
+                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                                    : 'bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800' }}
                                     text-white px-6 py-2 rounded-full transition-all flex items-center group/button hover:shadow-lg">
                                 <span>{{ $room->is_available ? 'Pesan Sekarang' : 'Lihat Detail' }}</span>
-                                <i class="fas fa-arrow-right ml-2 text-sm transform group-hover/button:translate-x-1 transition-transform duration-300"></i>
+                                <i
+                                    class="fas fa-arrow-right ml-2 text-sm transform group-hover/button:translate-x-1 transition-transform duration-300"></i>
                             </a>
                         </div>
                     </div>

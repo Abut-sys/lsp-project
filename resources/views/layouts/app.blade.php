@@ -10,12 +10,12 @@
 <body class="bg-gray-100">
     <header class="bg-white shadow">
         <div class="container mx-auto px-4 py-6 flex justify-between">
-            <a href="{{ route('welcome') }}" class="text-xl font-bold">Hotel Reservation</a>
+            <a href="{{ route('welcome.home') }}" class="text-xl font-bold">Hotel Reservation</a>
             <nav>
-                <a href="{{ route('welcome') }}" class="mr-4">Home</a>
+                <a href="{{ route('welcome.home') }}" class="mr-4">Home</a>
                 <a href="#" class="mr-4">Rooms</a>
                 @auth
-                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                    <form action="{{ route('user.logout') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="text-red-500">Logout</button>
                     </form>

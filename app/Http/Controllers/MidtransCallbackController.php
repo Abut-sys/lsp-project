@@ -12,30 +12,56 @@ class MidtransCallbackController extends Controller
     {
         Log::info('Midtrans Callback Received:', $request->all());
 
-        $orderId = $request->order_id;
-        $transactionStatus = $request->transaction_status;
+        // 1. Validasi Signature Key
+        $serverKey = config('services.midtrans.server_key');
+        $hashedSignature = hash('sha512',
+            $request->order_id .
+            $request->status_code .
+            $request->gross_amount .
+            $serverKey
+        );
 
-        $booking = Booking::find($orderId);
+        if ($hashedSignature !== $request->signature_key) {
+            Log::error('Invalid Midtrans Signature');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // 2. Ambil order_id dan transaction_status
+        $orderId = $request->order_id;
+        $transactionStatus = $request->transaction_status; 
+
+        // 3. Cari booking berdasarkan order_id (bukan ID database)
+        $booking = Booking::where('order_id', $orderId)->first();
 
         if (!$booking) {
+            Log::error('Booking not found: ' . $orderId);
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
-        // Update status pembayaran berdasarkan response dari Midtrans
-        if ($transactionStatus == 'settlement') {
-            $booking->update([
-                'payment_status' => 'settlement',
-                'status' => 'confirmed',
-            ]);
-        } elseif ($transactionStatus == 'pending') {
-            $booking->update(['payment_status' => 'pending']);
-        } elseif (in_array($transactionStatus, ['cancel', 'failure', 'expire'])) {
-            $booking->update([
-                'payment_status' => 'failure',
-                'status' => 'cancelled',
-            ]);
+        // 4. Update status
+        switch (strtolower($transactionStatus)) {
+            case 'settlement':
+                $booking->update([
+                    'payment_status' => 'settlement',
+                    'status' => 'confirmed'
+                ]);
+                break;
+
+            case 'pending':
+                $booking->update(['payment_status' => 'pending']);
+                break;
+
+            case 'expire':
+            case 'cancel':
+            case 'deny':
+                $booking->update([
+                    'payment_status' => 'failed',
+                    'status' => 'cancelled'
+                ]);
+                break;
         }
 
-        return response()->json(['message' => 'Payment status updated']);
+        Log::info('Booking Updated:', $booking->toArray());
+        return response()->json(['message' => 'Status updated']);
     }
 }

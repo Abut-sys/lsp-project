@@ -1,50 +1,14 @@
 <nav class="bg-white/70 backdrop-blur-lg shadow-sm border-b border-gray-200/50 p-4 fixed w-full top-0 z-50 transition-all duration-300 hover:bg-white/80">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <!-- Logo dengan efek transparan -->
-        <a href="{{ url('/') }}" class="flex items-center group transform transition-all duration-300 hover:scale-105">
-            <span class="text-3xl font-bold bg-gradient-to-r from-blue-600/90 to-orange-500/90 bg-clip-text text-transparent">
-                BookNStay
-            </span>
-        </a>
-
-        <!-- Mobile Menu Button -->
-        <div class="md:hidden">
-            <button @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="text-gray-600 hover:text-blue-600 transition-all p-2 rounded-lg
-                           hover:bg-white/30">
-                <svg class="h-6 w-6 transform transition-transform duration-300"
-                     :class="{ 'rotate-90': mobileMenuOpen }"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+        <div class="flex-1">
+            <a href="{{ url('/') }}" class="flex items-center group transform transition-all duration-300 hover:scale-105">
+                <span class="text-3xl font-bold bg-gradient-to-r from-blue-600/90 to-orange-500/90 bg-clip-text text-transparent">
+                    BookNStay
+                </span>
+            </a>
         </div>
-
-        <!-- Mobile Menu dengan transparansi -->
-        <div class="md:hidden absolute top-full left-0 right-0 bg-white/90 backdrop-blur-md shadow-xl"
-             x-show="mobileMenuOpen"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             @click.away="mobileMenuOpen = false">
-            <div class="px-4 py-4 space-y-4">
-                <a href="{{ route('user.login.email') }}"
-                   class="block pl-4 py-3 text-gray-700 hover:text-blue-600 rounded-lg
-                          hover:bg-white/30 transition-all duration-300">
-                    <i class="fas fa-sign-in-alt mr-3 text-blue-400/80"></i>
-                    Login
-                </a>
-                <a href="{{ route('user.register.email') }}"
-                   class="block w-full text-center bg-gradient-to-r from-blue-500/90 to-blue-600/90
-                          text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300
-                          transform hover:-translate-y-0.5">
-                    Register
-                </a>
-            </div>
-        </div>
-
+        
         <!-- Navigation Links -->
         <div class="flex items-center gap-8">
             @guest
