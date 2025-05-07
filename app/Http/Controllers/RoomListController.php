@@ -6,18 +6,41 @@ use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\RoomType;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class RoomListController extends Controller
 {
     public function showPopularHotels(Request $request)
     {
+        $request->validate([
+            'check_in' => 'nullable|date',
+            'check_out' => 'nullable|date|after:check_in',
+            'query' => 'nullable|string|max:255',
+            'rooms' => 'nullable|exists:rooms,id',
+            'guests' => [
+                'nullable',
+                'integer',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('rooms')) {
+                        $room = Room::find($request->rooms);
+                        if ($room && $value > $room->capacity) {
+                            $fail("The number of guests cannot exceed room capacity ({$room->capacity} people).");
+                        }
+                    }
+                }
+            ],
+            'is_available' => 'nullable|boolean',
+            'sort_by' => 'nullable|in:price,kamar_terbaik'
+        ]);
+
         $query = Room::with(['roomType', 'bookings']);
         $roomTypes = RoomType::pluck('name', 'id');
         $sortBy = $request->query('sort_by');
         $checkIn = null;
         $checkOut = null;
 
-        // Filter Tanggal
+        // Date Filter
         if ($request->filled(['check_in', 'check_out'])) {
             try {
                 $checkIn = Carbon::parse($request->check_in)->startOfDay();
@@ -37,26 +60,27 @@ class RoomListController extends Controller
                     });
                 }
             } catch (\Exception $e) {
-                // Handle invalid date format
             }
         }
 
-        // Filter Pencarian
+        // Search Filter
         if ($request->filled('query')) {
             $query->whereHas('roomType', function ($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->query('query').'%');
             });
         }
 
-        // Filter Lainnya
+        // Room Number Filter
         $request->whenFilled('rooms', function ($value) use ($query) {
-            $query->where('room_number', $value);
+            $query->where('id', $value);
         });
 
+        // Guest Capacity Filter
         $request->whenFilled('guests', function ($value) use ($query) {
             $query->where('capacity', '>=', $value);
         });
 
+        // Availability Filter
         $request->whenFilled('is_available', function ($value) use ($query) {
             $query->where('is_available', filter_var($value, FILTER_VALIDATE_BOOLEAN));
         });

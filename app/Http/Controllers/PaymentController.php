@@ -20,6 +20,17 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'check_in_date' => 'required|date|after_or_equal:today',
             'check_out_date' => 'required|date|after:check_in_date',
+            'number_of_guests' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:' . $room->capacity,
+                function ($attribute, $value, $fail) use ($room) {
+                    if ($value > $room->capacity) {
+                        $fail("Jumlah tamu tidak boleh melebihi kapasitas kamar ({$room->capacity} orang).");
+                    }
+                }
+            ],
         ]);
 
         Log::debug('Booking validation passed', $validated);
@@ -33,7 +44,7 @@ class PaymentController extends Controller
                 ->withInput();
         }
 
-        // Validasi ketersediaan kamar untuk pengguna lain
+        // Validasi ketersediaan kamar
         if (!$room->isAvailable($validated['check_in_date'], $validated['check_out_date'], $user->id)) {
             Log::warning('Room not available', ['room_id' => $room->id, 'dates' => $validated]);
             return redirect()
@@ -42,24 +53,22 @@ class PaymentController extends Controller
                 ->withInput();
         }
 
-        // Hitung durasi dan total harga
         $checkIn = Carbon::parse($validated['check_in_date']);
         $checkOut = Carbon::parse($validated['check_out_date']);
         $totalPrice = $room->price * $checkIn->diffInDays($checkOut);
 
-        // Buat booking
         $booking = Booking::create([
             'user_id' => $user->id,
             'room_id' => $room->id,
             'check_in_date' => $validated['check_in_date'],
             'check_out_date' => $validated['check_out_date'],
+            'number_of_guests' => $validated['number_of_guests'],
             'total_price' => $totalPrice,
             'payment_status' => 'pending',
         ]);
 
         Log::debug('Booking created', ['booking_id' => $booking->id]);
 
-        // Proses pembayaran Midtrans
         $midtrans = new MidtransService();
         $transactionData = $this->prepareTransactionData($booking, $user, $totalPrice);
 
@@ -108,6 +117,14 @@ class PaymentController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone,
             ],
+            'item_details' => [
+                [
+                    'id' => $booking->room_id,
+                    'price' => $booking->room->price,
+                    'quantity' => $booking->check_in_date->diffInDays($booking->check_out_date),
+                    'name' => $booking->room->roomType->name . ' (Guests: ' . $booking->number_of_guests . ')',
+                ]
+            ],
             'callbacks' => [
                 'finish' => route('welcome.home', $booking->id),
                 'error' => route('welcome.home', $booking->id),
@@ -115,6 +132,7 @@ class PaymentController extends Controller
             'metadata' => [
                 'booking_id' => $booking->id,
                 'user_id' => $user->id,
+                'number_of_guests' => $booking->number_of_guests,
             ],
         ];
     }
@@ -133,7 +151,6 @@ class PaymentController extends Controller
             return response()->json(['status' => 'Invalid signature'], 403);
         }
 
-        // Proses update status booking
         $booking = $this->processBookingStatus($payload);
 
         return response()->json(['status' => 'success']);

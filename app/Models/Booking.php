@@ -13,7 +13,7 @@ class Booking extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'room_id', 'check_in_date', 'check_out_date', 'payment_status', 'total_price', 'midtrans_token'];
+    protected $fillable = ['user_id', 'room_id', 'check_in_date', 'check_out_date', 'number_of_guests', 'payment_status', 'total_price', 'midtrans_token'];
 
     protected $casts = [
         'check_in_date' => 'date',

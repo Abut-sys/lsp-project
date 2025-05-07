@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('room_id')->constrained()->onDelete('cascade');
             $table->date('check_in_date');
             $table->date('check_out_date');
+            $table->integer('number_of_guests')->default(1);
             $table->enum('payment_status', ['pending', 'confirmed', 'cancel', 'expire', 'failure'])->default('pending');
             $table->decimal('total_price', 10, 0);
             $table->string('midtrans_token')->nullable();
